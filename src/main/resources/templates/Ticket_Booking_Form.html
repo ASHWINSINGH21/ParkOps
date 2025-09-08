@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+    <html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Book Ride Ticket</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; }
+        body{
+            font-family: 'Segoe UI', sans-serif;
+            background-color: #F2F4F7;
+            margin:0;
+            padding:0;
+        }
+        #bg-video {
+            position: fixed;
+            top:0;
+            left:0;
+            width:100vw;
+            height:100vh;
+            object-fit:cover;
+            z-index:-1;
+        }
+        .navbar-custom { background-color: #f58221; }
+        .card-form {
+            width:100%;
+            max-width:700px;
+            border-radius:12px;
+            color:white;
+            background-color:#43352241;
+            backdrop-filter: blur(10px);
+            padding: 2rem;
+        }
+        input, select { background-color: #f1f8e9 !important; }
+        .btn-submit { background-color: #f58221; color: white; }
+        .btn-submit:hover { color:#910000; background-color:#f58221; }
+        #ride-meta, #availabilityMessage { color: white; }
+        .navbar-brand img { max-height: 100px; }
+        .nav-link:hover { color: #910000 !important; }
+        .main {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding-top: 100px;
+            padding-bottom: 2rem;
+        }
+        h2 {
+            text-align: center;
+            margin-bottom: 1rem;
+            color: white;
+        }
+        .logout-btn { background-color: #910000; color: white; }
+        .logout-btn:hover { color: #f58221; }
+
+        /* match event page amount boxes */
+        .amount-box {
+            font-weight: 600;
+            background-color: #f1f8e9;
+            padding: .5rem;
+            border-radius: 6px;
+            color: #222;
+        }
+    </style>
+</head>
+<body>
+<video autoplay muted loop playsinline id="bg-video">
+    <source src="/videos/website-desktop-landing.mp4" type="video/mp4">
+</video>
+
+<nav class="navbar navbar-expand-lg navbar-dark navbar-custom fixed-top px-3">
+    <div class="container-fluid d-flex justify-content-between align-items-center">
+        <a class="navbar-brand d-flex align-items-center gap-2" href="#">
+            <img class="img" src="/videos/og_logo.jpg" alt="Logo" width="100" height="60">
+            <span class="fw-bold text-white">ParkScape</span>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar"
+                aria-controls="offcanvasNavbar" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="offcanvas offcanvas-end text-bg-dark" tabindex="-1" id="offcanvasNavbar"
+             aria-labelledby="offcanvasNavbarLabel">
+            <div class="offcanvas-header">
+                <h5 class="offcanvas-title" id="offcanvasNavbarLabel">Menu</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"
+                        aria-label="Close"></button>
+            </div>
+
+            <div class="offcanvas-body">
+                <ul class="navbar-nav justify-content-center flex-grow-1 pe-3">
+                    <li class="nav-item"><a class="nav-link text-white" href="#">Home</a></li>
+                    <li class="nav-item"><a class="nav-link text-white" href="#">About Us</a></li>
+                    <li class="nav-item"><a class="nav-link text-white" href="#">Contact Us</a></li>
+                    <li class="nav-item"><a class="nav-link text-white" th:href="@{/event_book}">Events</a></li>
+                    <li class="nav-item"><a class="nav-link text-white" th:href="@{/feedback}">Feedback</a></li>
+                </ul>
+
+                <button class="btn logout-btn ms-lg-3 mt-3 mt-lg-0">Logout</button>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<div class="container d-flex justify-content-center" style="min-height: 100vh; padding-top: 100px;">
+    <div class="card-form">
+        <h2 class="text-center mb-3">Book a Ride Ticket</h2>
+
+        <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+        <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+        <div th:if="${warningMessage}" class="alert alert-warning" th:text="${warningMessage}"></div>
+        <div th:if="${warningMessageSeats}" class="alert alert-warning" th:text="${warningMessageSeats}"></div>
+
+        <div th:if="${partialBookingRequired}" class="alert alert-warning">
+            Only <strong th:text="${remainingSeats}">0</strong> seat(s) are available for the selected slot.
+            You selected <strong th:text="${selectedVisitorsCount}">0</strong> visitors.
+            <div class="mt-2">
+                <form th:action="@{/booked}" th:object="${ticket}" method="post" style="display:inline;">
+                    <input type="hidden" name="partialConfirm" value="true"/>
+                    <button type="submit" class="btn btn-primary btn-sm">Book available seats</button>
+                </form>
+                <a th:href="@{/book}" class="btn btn-secondary btn-sm">Cancel</a>
+            </div>
+        </div>
+        <form id="bookingForm" th:action="@{/booked}" th:object="${ticket}" method="post">
+            <input type="hidden" name="partialConfirm" id="partialConfirm" value="false"/>
+            <input type="hidden" name="ticketCount" id="ticketCount" value="0"/>
+
+            <div class="mb-3">
+                <label for="visitor_id" class="form-label">Select Visitor(s)</label>
+                <select id="visitor_id" th:field="*{visitorIds}" class="form-select" multiple required>
+                    <option th:each="visitor : ${visitors}" th:value="${visitor.visitor_id}"
+                            th:text="${#strings.capitalize(visitor.name)}"></option>
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label for="rideId" class="form-label">Select Ride</label>
+                <select id="rideId" th:field="*{rideId}" class="form-select" required>
+                    <option value="" disabled th:selected="*{rideId} == 0">Select a Ride</option>
+                    <option th:each="ride : ${rides}"
+                            th:value="${ride.rideId}"
+                            th:data-slots="${ride.no_slots}"
+                            th:data-seatlimit="${ride.seat_limit}"
+                            th:data-price="${ride.ticket_price}"
+                            th:text="${#strings.capitalize(ride.name)}"></option>
+                </select>
+                <p id="ride-meta" class="mt-2"></p>
+                <p id="availabilityMessage" class="form-text mt-1"></p>
+            </div>
+
+            <div class="row mb-3 g-2">
+                <div class="col-6">
+                    <label class="form-label">Per-ticket Amount</label>
+                    <div id="ride-price" class="amount-box">—</div>
+                </div>
+                <div class="col-6">
+                    <label class="form-label">Total</label>
+                    <div id="ride-total" class="amount-box"></div>
+                </div>
+            </div>
+            <div class="mb-3">
+                <label for="date" class="form-label">Date</label>
+                <input type="date" id="date" th:field="*{date}" class="form-control" required>
+            </div>
+            <div class="mb-3">
+                <label for="slot" class="form-label">Slot Number</label>
+                <input type="number" id="slot" th:field="*{slot}" class="form-control" min="1" required
+                       aria-describedby="slotHelp">
+                <small id="slotHelp" class="form-text text-white-50"></small>
+            </div>
+
+            <input type="hidden" id="time" th:field="*{time}"/>
+
+            <div class="d-grid gap-2 mt-3">
+                <button type="submit" class="btn btn-submit w-100">Book Ticket</button>
+                <a th:href="@{/payment}" class="btn btn-success w-100 mt-2"
+                   th:attr="disabled=${hasBooked == null or !hasBooked}">Make Payment</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="modal fade" id="partialConfirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Limited Seats Available</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="partialModalBody"></div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No, cancel</button>
+                <button type="button" id="partialConfirmBtn" class="btn btn-primary">Yes, book available seats</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    function setCurrentTime() {
+      const now = new Date();
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const timeField = document.getElementById('time');
+      if (timeField) timeField.value = `${hours}:${minutes}`;
+    }
+
+    function updateRideMeta() {
+      const sel = document.getElementById('rideId').selectedOptions[0];
+      if (!sel) return;
+      const seatLimit = sel.getAttribute('data-seatlimit') || '-';
+      const slotCount = sel.getAttribute('data-slots') || '-';
+      document.getElementById('ride-meta').textContent =
+        `Seat limit per slot: ${seatLimit} | Total slots: ${slotCount}`;
+
+      const slotInput = document.getElementById('slot');
+      if (slotCount && slotCount !== '-') {
+        slotInput.max = slotCount;
+        document.getElementById('slotHelp').textContent =
+          `Enter a slot number between 1 and ${slotCount}`;
+      } else {
+        slotInput.removeAttribute('max');
+        document.getElementById('slotHelp').textContent = '';
+      }
+      document.getElementById('availabilityMessage').textContent = '';
+    }
+
+    function updateTotalPrice() {
+      const sel = document.getElementById('rideId').selectedOptions[0];
+      const visitorSelect = document.getElementById('visitor_id');
+      const priceBox = document.getElementById('ride-price');
+      const totalBox = document.getElementById('ride-total');
+      const ticketCountInput = document.getElementById('ticketCount');
+
+      if (!sel || !visitorSelect) {
+        priceBox.textContent = '—';
+        totalBox.textContent = '—';
+        if (ticketCountInput) ticketCountInput.value = 0;
+        return;
+      }
+
+      const price = parseFloat(sel.getAttribute('data-price') || '0');
+      const count = visitorSelect.selectedOptions.length;
+
+      priceBox.textContent = price > 0 ? `₹ ${price}` : '—';
+      totalBox.textContent = (price > 0 && count > 0) ? `₹ ${price * count}` : '—';
+
+      if (ticketCountInput) ticketCountInput.value = count;
+    }
+
+    async function fetchAvailability() {
+      const rideId = document.getElementById('rideId').value;
+      const date = document.getElementById('date').value;
+      const slot = document.getElementById('slot').value;
+      const msg = document.getElementById('availabilityMessage');
+      if (!rideId || !date || !slot) { msg.textContent = ''; return null; }
+
+      try {
+        const params = new URLSearchParams({ rideId, date, slot });
+        const resp = await fetch('/api/availability?' + params.toString(), { cache: 'no-store' });
+        if (!resp.ok) { msg.textContent = 'Could not fetch availability.'; return null; }
+        const data = await resp.json();
+        if (data.error) { msg.textContent = data.error; return null; }
+        const remaining = data.remaining ?? 0;
+        msg.textContent = `Seats left: ${remaining}`;
+        return remaining;
+      } catch (err) {
+        console.error(err);
+        msg.textContent = 'Could not fetch availability.';
+        return null;
+      }
+    }
+ 
+    document.addEventListener('DOMContentLoaded', () => {
+      setCurrentTime();
+
+      const form = document.getElementById('bookingForm');
+      const rideSelect = document.getElementById('rideId');
+      const dateEl = document.getElementById('date');
+      const slotEl = document.getElementById('slot');
+      const visitorSelect = document.getElementById('visitor_id');
+      const partialModal = new bootstrap.Modal(document.getElementById('partialConfirmModal'));
+      const modalBody = document.getElementById('partialModalBody');
+      const partialConfirmBtn = document.getElementById('partialConfirmBtn');
+      const partialConfirmHidden = document.getElementById('partialConfirm');
+
+      if (rideSelect) rideSelect.addEventListener('change', () => {
+        updateRideMeta();
+        fetchAvailability();
+        updateTotalPrice();
+      });
+      if (dateEl) dateEl.addEventListener('change', () => {
+        fetchAvailability();
+      });
+      if (slotEl) slotEl.addEventListener('change', () => {
+        fetchAvailability();
+      });
+      if (visitorSelect) visitorSelect.addEventListener('change', updateTotalPrice);
+
+      form.addEventListener('submit', async e => {
+        e.preventDefault();
+        updateTotalPrice(); // ensure ticketCount is updated
+        const remaining = await fetchAvailability();
+        const selected = visitorSelect.selectedOptions.length;
+
+        if (remaining == null) {
+          if (!confirm('Could not check availability. Submit anyway and let server confirm?')) return;
+          form.submit();
+          return;
+        }
+
+        if (selected === 0) { alert('Please select at least one visitor.'); return; }
+        if (remaining <= 0) { alert('No seats left for this slot.'); return; }
+
+        if (selected <= remaining) {
+          partialConfirmHidden.value = 'false';
+          form.submit();
+        } else {
+          modalBody.textContent =
+            `Only ${remaining} seat(s) available. You selected ${selected} visitors. Book for ${remaining} only?`;
+          partialModal.show();
+          partialConfirmBtn.onclick = () => {
+            partialConfirmHidden.value = 'true';
+            partialModal.hide();
+            form.submit();
+          };
+        }
+      });
+
+      const today = new Date().toISOString().split('T')[0];
+      if (dateEl) { dateEl.setAttribute('min', today); if (!dateEl.value) dateEl.value = today; }
+      if (rideSelect && rideSelect.value) {
+        updateRideMeta();
+        updateTotalPrice();
+      }
+    });
+</script>
+</body>
+</html>

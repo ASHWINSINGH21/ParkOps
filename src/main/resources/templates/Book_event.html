@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>Book Event Ticket</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: #F2F4F7;
+            overflow-x: hidden;
+        }
+        #bg-video {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw; height: 100vh;
+            object-fit: cover; z-index: -1;
+        }
+        .navbar-custom { background-color: #f58221; }
+        .navbar-brand img { max-height: 60px; border-radius: 10px; }
+        .nav-link:hover { color: #910000 !important; }
+        .main { display: flex; justify-content: center; align-items: center; min-height: 100vh; padding-top: 100px; padding-bottom: 2rem; }
+        .form-wrapper {
+            width: 100%; max-width: 850px; padding: 2rem; border-radius: 12px; color: white;
+            background-color: rgba(67, 53, 34, 0.25); backdrop-filter: blur(10px);
+        }
+        h2 { text-align: center; margin-bottom: 1rem; color: white; }
+        input, select { background-color: #f1f8e9 !important; }
+        .btn-submit { background-color: #f58221; color: white; }
+        .btn-submit:hover { color: #910000; background-color: #f58221;}
+        .logout-btn { background-color: #910000; color: white; }
+        .logout-btn:hover { color: #f58221; }
+        .img { border-radius: 12px; background-color: white; }
+        .small-muted { color: #f0f0f0; opacity: .85; font-size: .9rem; }
+        .amount-box { font-weight: 600; background-color: #f1f8e9; padding: .5rem; border-radius: 6px; color: #222; }
+    </style>
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-dark navbar-custom fixed-top px-3">
+    <div class="container-fluid">
+        <a class="navbar-brand d-flex align-items-center gap-2" th:href="@{/}">
+            <img class="img" src="/videos/og_logo.jpg" alt="Logo" width="100" height="60">
+            <span class="fw-bold text-white">ParkScape</span>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="offcanvas offcanvas-end text-bg-dark" id="offcanvasNavbar">
+            <div class="offcanvas-header">
+                <h5 class="offcanvas-title">Menu</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"></button>
+            </div>
+            <div class="offcanvas-body">
+                <ul class="navbar-nav justify-content-center flex-grow-1 pe-3">
+                    <li class="nav-item"><a class="nav-link text-white" th:href="@{/}">Home</a></li>
+                    <li class="nav-item"><a class="nav-link text-white" href="#">About Us</a></li>
+                    <li class="nav-item"><a class="nav-link text-white" href="#">Contact Us</a></li>
+                    <li class="nav-item"><a class="nav-link text-white" th:href="@{/book}">Rides</a></li>
+                </ul>
+                <div class="d-flex align-items-center">
+                    <a th:href="@{/logout}" class="btn logout-btn ms-3">Logout</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</nav>
+<video autoplay muted loop playsinline id="bg-video">
+    <source src="/videos/website-desktop-landing.mp4" type="video/mp4">
+</video>
+
+<div class="main container">
+    <div class="form-wrapper">
+        <form th:action="@{/event_booked}" th:object="${booking}" method="post" class="needs-validation" novalidate>
+            <!-- CSRF token -->
+            <div th:if="${_csrf != null}">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+            </div>
+
+            <h2>Book an Event Ticket</h2>
+
+            <!-- Flash / feedback messages -->
+            <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+            <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+            <div th:if="${warningMessage}" class="alert alert-warning" th:text="${warningMessage}"></div>
+
+            <!-- optional server-side validation flags -->
+            <div th:if="${visitorError}" class="alert alert-danger" role="alert">
+                The visitor ID you entered is not valid. Please check and try again.
+            </div>
+            <div th:if="${duplicateError}" class="alert alert-danger" role="alert">
+                You have already booked this event for the selected date/time.
+            </div>
+
+            <div class="mb-3">
+                <label for="eventId" class="form-label small-muted">Select Event</label>
+                <select id="eventId" th:field="*{eventId}" class="form-select" required>
+                    <option value="" disabled th:selected="*{eventId} == null">Select an Event</option>
+                    <option th:each="event : ${events}"
+                            th:value="${event.eventId != null ? event.eventId : event.event_id}"
+                            th:data-amount="${event.amount}"
+                            th:data-start="${event.start_date != null ? event.start_date : event.startDate}"
+                            th:data-end="${event.end_date != null ? event.end_date : event.endDate}"
+                            th:text="${event.name}">
+                    </option>
+                </select>
+                <div class="invalid-feedback">Please choose an event.</div>
+                <div id="eventRange" class="mt-1 fw-bold"></div>
+            </div>
+
+            <div class="mb-3">
+                <label for="visitor_id" class="form-label small-muted">Select Visitor(s)</label>
+                <select id="visitor_id" th:field="*{visitorIds}" class="form-select" multiple required>
+                    <option th:each="visitor : ${visitors}" th:value="${visitor.visitor_id}"
+                            th:text="${#strings.capitalize(visitor.name)}"></option>
+                </select>
+                <div class="form-text small-muted">select multiple visitors.</div>
+<!--                <div class="invalid">Please choose at least one visitor.</div>-->
+            </div>
+
+            <div class="mb-3">
+                <label for="date" class="form-label small-muted">Choose Date</label>
+                <input type="date" th:field="*{date}" id="date" class="form-control" required>
+                <div class="invalid-feedback">Please select a valid date.</div>
+            </div>
+
+            <input type="hidden" th:field="*{time}" id="time"/>
+
+            <!-- Ticket counts & money -->
+            <div class="row mb-3 g-2">
+                <div class="col-6">
+                    <label class="form-label small-muted">Per-ticket Amount</label>
+                    <div id="amountBox" class="amount-box">—</div>
+                </div>
+                <div class="col-6">
+                    <label class="form-label small-muted">Total</label>
+                    <div id="totalBox" class="amount-box">—</div>
+                </div>
+            </div>
+
+            <!-- hidden helper that controller doesn't need but useful for payment endpoint -->
+            <input type="hidden" name="ticketCount" id="ticketCount" value="0"/>
+
+            <button type="submit" class="btn btn-submit w-100">Go for Payment</button>
+        </form>
+    </div>
+</div>
+
+<!-- Bootstrap JS bundle -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    (function () {
+        'use strict';
+
+        // helpers
+        const q = id => document.getElementById(id);
+        const toNumber = s => {
+            if (!s && s !== 0) return 0;
+            const n = Number(String(s).replace(/[^\d.]/g, ''));
+            return isNaN(n) ? 0 : n;
+        };
+
+        // DOM elements
+        const dateInput = q('date');
+        const timeInput = q('time');
+        const eventSelect = q('eventId');
+        const visitorSelect = q('visitor_id');
+        const amountBox = q('amountBox');
+        const totalBox = q('totalBox');
+        const ticketCountInput = q('ticketCount');
+        const eventRange = q('eventRange');
+
+        // set minimum date to today and default to today
+        const now = new Date();
+        const yyyy = now.getFullYear();
+        const mm = String(now.getMonth() + 1).padStart(2, '0');
+        const dd = String(now.getDate()).padStart(2, '0');
+        const todayStr = `${yyyy}-${mm}-${dd}`;
+        if (dateInput) {
+            dateInput.setAttribute('min', todayStr);
+            if (!dateInput.value) dateInput.value = todayStr;
+        }
+
+        // set current time (HH:mm) in hidden field
+        if (timeInput && !timeInput.value) {
+            const pad = n => String(n).padStart(2, '0');
+            timeInput.value = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
+        }
+
+        // compute selected visitor count
+        function selectedVisitorCount() {
+            if (!visitorSelect) return 0;
+            return Array.from(visitorSelect.options).filter(o => o.selected).length;
+        }
+
+        // update amount and total
+        function updateAmounts() {
+            const opt = eventSelect ? eventSelect.options[eventSelect.selectedIndex] : null;
+            const per = opt ? toNumber(opt.getAttribute('data-amount')) : 0;
+            const count = selectedVisitorCount();
+            amountBox.textContent = per ? `₹ ${per}` : '—';
+            totalBox.textContent = (per && count) ? `₹ ${per * count}` : (count ? `₹ ${per * count}` : '—');
+            if (ticketCountInput) ticketCountInput.value = count;
+            // show event date range if provided
+            if (opt && (opt.getAttribute('data-start') || opt.getAttribute('data-end'))) {
+                const s = opt.getAttribute('data-start') || '';
+                const e = opt.getAttribute('data-end') || '';
+                eventRange.textContent = (s || e) ? `Event dates: ${s}${s && e ? ' — ' : ''}${e}` : '';
+            } else {
+                eventRange.textContent = '';
+            }
+        }
+
+        // handle change events
+        if (eventSelect) eventSelect.addEventListener('change', updateAmounts);
+        if (visitorSelect) visitorSelect.addEventListener('change', updateAmounts);
+
+        // initial populate (if template pre-selects an event)
+        updateAmounts();
+
+        // Bootstrap validation + ensure ticketCount is set before submit
+        const forms = document.querySelectorAll('.needs-validation');
+        Array.prototype.slice.call(forms).forEach(function(form) {
+            form.addEventListener('submit', function(event) {
+                // update amounts and ticketCount (in case user didn't change selection)
+                updateAmounts();
+
+                const count = selectedVisitorCount();
+                if (count === 0) {
+                    // trigger invalid UI for visitor select
+                    if (visitorSelect) visitorSelect.classList.add('is-invalid');
+                } else {
+                    if (visitorSelect) visitorSelect.classList.remove('is-invalid');
+                }
+
+                if (!form.checkValidity() || count === 0) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    form.classList.add('was-validated');
+                    return;
+                }
+                // allow submission: ticketCount is already set by updateAmounts()
+            }, false);
+        });
+
+    })();
+</script>
+</body>
+</html>

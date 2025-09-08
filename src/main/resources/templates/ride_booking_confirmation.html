@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8">
+    <title>ParkScape Tickets</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background: #f2f4f7;
+            color: #111;
+        }
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            background: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid #ddd;
+        }
+        .header {
+            background: #111;
+            color: #fff;
+            padding: 16px;
+            text-align: center;
+            font-size: 18px;
+        }
+        .content {
+            padding: 20px;
+        }
+        .box {
+            background: #fff7e9;
+            border: 1px solid #ffd7b1;
+            border-radius: 6px;
+            padding: 12px;
+            margin: 16px 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 12px;
+        }
+        th, td {
+            border: 1px solid #e5e7eb;
+            padding: 8px;
+            font-size: 14px;
+            text-align: left;
+        }
+        th {
+            background: #f9fafb;
+        }
+        .footer {
+            background: #111;
+            color: #fff;
+            text-align: center;
+            font-size: 12px;
+            padding: 12px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">Your Ride Tickets are Confirmed</div>
+    <div class="content">
+        <h2 style="margin:0 0 8px;">Booking Details</h2>
+        <div class="box">
+            <div><strong>Ride:</strong> <span th:text="${ride.name}"></span></div>
+            <div><strong>Date:</strong> <span th:text="${#temporals.format(date, 'dd MMM yyyy')}"></span></div>
+            <div><strong>Slot:</strong> <span th:text="${slot}">1</span></div>
+            <div th:if="${unitPrice != null}"><strong>Per Ticket:</strong> ₹<span th:text="${unitPrice}"></span></div>
+            <div><strong>Total Tickets:</strong> <span th:text="${totalTickets}"></span></div>
+        </div>
+        <h2 style="margin:0 0 8px;">Visitors</h2>
+        <table>
+            <thead>
+            <tr>
+                <th>Name</th>
+                <th>Visitor ID</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="v : ${visitors}">
+                <td th:text="${v.name}"></td>
+                <td th:text="${v.id}"></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+</body>
+</html>

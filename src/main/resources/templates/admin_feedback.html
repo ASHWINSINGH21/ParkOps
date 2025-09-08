@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feedback Reviews</title>
+    <style>
+        body {
+          font-family: Arial, Helvetica, sans-serif;
+          background: linear-gradient(135deg, #f0e09c, #f87102, #f0e09c);
+          margin: 0;
+          padding: 30px;
+          display: flex;
+          justify-content: center;
+          align-items: flex-start;
+          min-height: 100vh;
+        }
+
+        h2 {
+          text-align: center;
+          margin-bottom: 25px;
+        }
+
+        .card-container {
+          width: 94%;
+          max-width: 1200px;
+          padding: 40px 20px;
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+          gap: 30px;
+        }
+
+        .review-card {
+          background: rgba(0, 0, 0, 0.6);
+          border-radius: 20px;
+          padding: 20px;
+          box-shadow: 0 8px 15px rgba(0, 0, 0, 0.5);
+          backdrop-filter: blur(20px);
+          color: white;
+          display: flex;
+          flex-direction: column;
+          justify-content: space-between;
+          transition: transform 0.25s ease, box-shadow 0.25s ease;
+          min-height: 250px;
+        }
+
+        .review-card:hover {
+          transform: translateY(-6px);
+          box-shadow: 0 12px 25px rgba(0, 0, 0, 0.7);
+        }
+
+        .status {
+          align-self: flex-end;
+          font-size: 12px;
+          padding: 4px 12px;
+          border-radius: 20px;
+          font-weight: bold;
+        }
+
+        .resolved {
+          background: limegreen;
+          color: white;
+        }
+
+        .pending {
+          border: 1px solid orangered;
+          color: orangered;
+        }
+
+        label {
+          font-size: 13px;
+          font-weight: bold;
+          color: orange;
+        }
+
+        .comment {
+          font-size: 20px;
+          margin: 12px 0;
+          font-style: italic;
+          color: rgb(255, 196, 174);
+        }
+
+        .rating {
+          font-size: 18px;
+          color: gold;
+          margin-bottom: 12px;
+        }
+
+        textarea {
+          width: 94%;
+          border: none;
+          border-radius: 12px;
+          padding: 8px;
+          font-size: 14px;
+          resize: none;
+          background: rgba(255, 255, 255, 0.15);
+          color: white;
+          margin-top: 8px;
+        }
+
+        textarea::placeholder {
+          color: #ccc;
+        }
+
+        textarea:focus {
+          outline: none;
+          border: 1px solid coral;
+          box-shadow: 0 0 6px orange;
+        }
+
+        button {
+          background: chocolate;
+          color: white;
+          font-size: 14px;
+          font-weight: bold;
+          padding: 8px 14px;
+          border: none;
+          border-radius: 12px;
+          cursor: pointer;
+          margin-top: 10px;
+          transition: all 0.2s ease;
+        }
+
+        button:hover {
+          background: orange;
+          color: white;
+        }
+
+        .admin-response {
+          background: rgba(255, 255, 255, 0.1);
+          padding: 10px;
+          border-left: 4px solid #27ae60;
+          border-radius: 10px;
+          font-size: 14px;
+          margin-top: 10px;
+          color: #d6f5d6;
+        }
+    </style>
+</head>
+<body>
+<div>
+    <h2>All Feedback</h2>
+    <div class="card-container">
+
+        <div class="review-card" th:each="feedback : ${feedbacks}">
+            <span th:if="${feedback.resolved}" class="status resolved">Resolved</span>
+            <span th:if="${!feedback.resolved}" class="status pending">Pending</span>
+
+            <p class="comment">“<span th:text="${feedback.comment}"></span>”</p>
+            <p class="rating">⭐ <span th:text="${feedback.rating}"></span>/5</p>
+
+            <div th:if="${!feedback.resolved}">
+                <form th:action="@{'/admin/' + ${feedback.feedback_id} + '/reply'}" method="post">
+                    <label>Admin Response</label>
+                    <textarea name="response" placeholder="Write your reply..." required></textarea>
+                    <button type="submit">Send Reply &amp; Resolve</button>
+                </form>
+            </div>
+
+            <div th:if="${feedback.resolved}" class="admin-response">
+                <strong>Admin Reply:</strong>
+                <span th:text="${feedback.response}"></span>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

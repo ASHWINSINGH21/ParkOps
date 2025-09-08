@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Park</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .button
+        {
+        background-color: #f58221;
+        color:white;
+        }
+        .button:hover{
+         background-color: #910000;
+         color:white;
+        }
+        .navbar-custom { background-color: #f58221; }
+        .navbar-brand img { max-height: 100px; }
+        .nav-link:hover { color: #910000 !important; }
+        .main { display: flex; justify-content: center; align-items: center; min-height: 100vh; padding-top: 100px; padding-bottom: 2rem; }
+        .form { width: 100%; max-width: 700px; padding: 2rem; border-radius: 12px; color: white; background-color: #43352241; backdrop-filter: blur(10px); }
+        h2 { text-align: center; margin-bottom: 1rem; color: white; }
+        input, select { background-color: #f1f8e9 !important; }
+        .btn-submit { background-color: #f58221; color: white; }
+        .btn-submit:hover { color: #910000; background-color: #f58221; }
+        .logout-btn { background-color: #910000; color: white; }
+        .logout-btn:hover { color: #f58221;}
+
+        #bg-video {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            object-fit: cover;
+            z-index: -1;
+        }
+    </style>
+</head>
+<body class="bg-light">
+<video autoplay muted loop playsinline id="bg-video">
+    <source src="/videos/website-desktop-landing.mp4" type="video/mp4">
+</video>
+<nav class="navbar navbar-expand-lg navbar-dark navbar-custom fixed-top px-3">
+    <div class="container-fluid d-flex justify-content-between align-items-center">
+        <a class="navbar-brand d-flex align-items-center gap-2" href="#">
+            <img class="img" src="/videos/og_logo.jpg" alt="Logo" width="100" height="60">
+            <span class="fw-bold text-white">ParkScape</span>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar"
+                aria-controls="offcanvasNavbar" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="offcanvas offcanvas-end text-bg-dark" tabindex="-1" id="offcanvasNavbar"
+             aria-labelledby="offcanvasNavbarLabel">
+            <div class="offcanvas-header">
+                <h5 class="offcanvas-title" id="offcanvasNavbarLabel">Menu</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"
+                        aria-label="Close"></button>
+            </div>
+            <div class="offcanvas-body">
+<!--                <ul class="navbar-nav justify-content-center flex-grow-1 pe-3">-->
+<!--                    <li class="nav-item"><a class="nav-link text-white" href="#">Home</a></li>-->
+<!--                    <li class="nav-item"><a class="nav-link text-white" href="#">About Us</a></li>-->
+<!--                    <li class="nav-item"><a class="nav-link text-white" href="#">Contact Us</a></li>-->
+<!--                </ul>-->
+            </div>
+        </div>
+                <button class="btn logout-btn ms-lg-3 mt-3 mt-lg-0">Logout</button>
+    </div>
+</nav>
+<div class="d-flex justify-content-center align-items-center vh-100">
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card shadow-sm">
+                    <div class="card-body p-4">
+                        <h1 class="h4 mb-4 text-center">Sign in</h1>
+
+                        <div th:if="${param.error}" class="alert alert-danger">Invalid email or password.</div>
+                        <div th:if="${param.logout}" class="alert alert-success">You have been logged out.</div>
+
+                        <form th:action="@{/login1}" method="post">
+                            <div class="mb-3">
+                                <label for="email" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="email" name="email" required/>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="password" class="form-label">Password</label>
+                                <input type="password" class="form-control" id="password" name="password" required/>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary w-100">Login</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

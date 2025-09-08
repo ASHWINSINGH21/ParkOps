@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Fragments</title>
+</head>
+<body>
+
+<th:block th:fragment="feedbackCss">
+    <style>
+        h2 {
+            text-align: center;
+            margin-bottom: 5%;
+            padding: 10px;
+        }
+
+        .container {
+            width: 400px;
+            margin: 100px auto;
+            padding: 30px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.3);
+            font-family: Arial, Helvetica, sans-serif;
+            font-weight: bold;
+        }
+
+        .form-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            width: 150px;
+            margin-right: 10px;
+            font-weight: bold;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid grey;
+            border-radius: 5px;
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: medium;
+        }
+
+        .form-group textarea {
+            resize: none;
+            min-height: 80px;
+        }
+
+        input[type="submit"] {
+            background-color: teal;
+            color: white;
+            font-size: 16px;
+            padding: 10px;
+            border-radius: 5px;
+            border: none;
+            transition: ease-in-out 0.2s;
+        }
+
+        input[type="submit"]:hover {
+            background-color: limegreen;
+            cursor: pointer;
+            box-shadow: 0px 0px 10px rgba(0, 255, 0, 0.7);
+        }
+
+        .rating {
+            display: flex;
+            flex-direction: row-reverse;
+            justify-content: flex-end;
+        }
+
+        .rating input {
+            display: none;
+        }
+
+        .rating label {
+            font-size: 50px;
+            filter: grayscale(75%);
+            opacity: 0.6;
+            cursor: pointer;
+            transition: transform, filter 0.3s, ease-in-out 0.2s;
+        }
+
+        .rating label:hover,
+        .rating label:hover ~ label {
+            opacity: 1;
+            filter: grayscale(0%);
+            transform: scale(1.1);
+            text-shadow: 0 0 10px orange;
+        }
+
+        .rating input:checked ~ label {
+            opacity: 1;
+            filter: grayscale(0%);
+        }
+    </style>
+</th:block>
+
+<div th:fragment="feedbackForm(feedback, submit)" class="container">
+    <form method="post" th:object="${feedback}" th:action="@{/submit}">
+        <h2>Ride Feedback</h2>
+
+        <input type="hidden" th:field="*{visitor_id}" />
+        <input type="hidden" th:field="*{ride_id}" />
+
+        <div class="form-group rating">
+            <input type="radio" id="s5" value="5" th:field="*{rating}" required /><label for="s5" title="Excellent">⭐</label>
+            <input type="radio" id="s4" value="4" th:field="*{rating}" /><label for="s4" title="Good">⭐</label>
+            <input type="radio" id="s3" value="3" th:field="*{rating}" /><label for="s3" title="Okay">⭐</label>
+            <input type="radio" id="s2" value="2" th:field="*{rating}" /><label for="s2" title="Bad">⭐</label>
+            <input type="radio" id="s1" value="1" th:field="*{rating}" /><label for="s1" title="Terrible">⭐</label>
+        </div>
+
+        <div class="form-group comment">
+            <textarea id="comment" th:field="*{comment}" placeholder="We'll love to know your genuine feedback"></textarea>
+        </div>
+
+        <div class="form-group">
+            <input type="submit" value="✔ Submit">
+        </div>
+    </form>
+</div>
+
+</body>
+</html>
